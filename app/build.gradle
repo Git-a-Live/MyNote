@@ -77,8 +77,6 @@ dependencies {
     implementation 'io.coil-kt:coil-svg:2.2.2'
     // 日志工具
     implementation 'com.orhanobut:logger:2.2.0'
-    // 常用工具库
-    implementation 'com.blankj:utilcodex:1.31.1'
     // 腾讯Bugly
     implementation 'com.tencent.bugly:crashreport_upgrade:1.6.1'
     implementation 'com.tencent.bugly:nativecrashreport:3.9.2'

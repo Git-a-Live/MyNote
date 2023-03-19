@@ -1,8 +1,6 @@
 package com.gitalive.composenote.ui.widget
 
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -23,8 +21,15 @@ import com.gitalive.composenote.R
 import com.gitalive.composenote.entities.NoteItemEntity
 
 @Composable
-fun NoteItem(note: NoteItemEntity) {
-    CustomSurface {
+fun NoteItem(
+    note: NoteItemEntity,
+    onClicked: (NoteItemEntity) -> Unit = {},
+    onLongClicked: (NoteItemEntity) -> Unit = {},
+) {
+    CustomSurface(
+        onClicked = { onClicked(note) },
+        onLongClicked = { onLongClicked(note) }
+    ) {
         NoteCover()
         NoteContent(note.title, note.content)
     }
@@ -75,14 +80,23 @@ internal fun NoteCover() {
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-internal fun CustomSurface(content: @Composable RowScope.() -> Unit) {
+internal fun CustomSurface(
+    onClicked: () -> Unit = {},
+    onLongClicked: () -> Unit = {},
+    content: @Composable RowScope.() -> Unit
+) {
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .height(60.dp)
+            .height(80.dp)
             .padding(4.dp)
-            .clickable { },
+            .combinedClickable(
+                enabled = true,
+                onClick = onClicked,
+                onLongClick = onLongClicked
+            ),
         shape = RoundedCornerShape(8.dp),
         border = BorderStroke(2.dp, Color.Cyan),
         elevation = 5.dp,

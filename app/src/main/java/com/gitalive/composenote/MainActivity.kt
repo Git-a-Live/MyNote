@@ -1,40 +1,54 @@
 package com.gitalive.composenote
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import com.gitalive.composenote.ui.theme.ComposeNoteTheme
+import androidx.lifecycle.ViewModelProvider
+import com.gitalive.composenote.ui.widget.Notes
+import com.gitalive.composenote.utils.DatabaseRepository
 
 class MainActivity : ComponentActivity() {
+    private lateinit var viewModel: MainViewModel
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        viewModel = ViewModelProvider(
+            this,
+            ViewModelProvider.AndroidViewModelFactory.getInstance(application)
+        )[MainViewModel::class.java]
+
         setContent {
-            ComposeNoteTheme {
-                // A surface container using the 'background' color from the theme
-                Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colors.background) {
-                    Greeting("Android")
+            Notes(
+                list = viewModel.noteListState,
+                onFABClicked = {
+                    goToNoteActivity()
+                },
+                onClicked = {
+                    goToNoteActivity(it.id)
+                },
+                onLongClicked = {
+                    viewModel.deleteNote(it.id)
                 }
-            }
+            )
         }
     }
-}
 
-@Composable
-fun Greeting(name: String) {
-    Text(text = "Hello $name!")
-}
+    override fun onResume() {
+        super.onResume()
+        viewModel.fetchAllNotes()
+    }
 
-@Preview(showBackground = true)
-@Composable
-fun DefaultPreview() {
-    ComposeNoteTheme {
-        Greeting("Android")
+    override fun onDestroy() {
+        DatabaseRepository.deInitObjectBox()
+        super.onDestroy()
+    }
+
+    private fun goToNoteActivity(entityId: Long = 0L) {
+        startActivity(Intent(this, NoteActivity::class.java).apply {
+            if (entityId != 0L) {
+                putExtra("noteId", entityId)
+            }
+        })
     }
 }

@@ -9,7 +9,6 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -28,8 +27,15 @@ fun NoteDetail(
     saveContent: (String) -> Unit
 ) {
     Scaffold(
-        topBar = { CustomTopBar(turnBack) },
-        bottomBar = { NoteDetailTimeInfo(note.createTime, note.editTime) },
+        topBar = {
+            CustomTopBar(
+                if ("暂无标题" == note.title && "请输入事项内容" == note.content) "新建记事" else "详情",
+                turnBack
+            )
+        },
+        bottomBar = {
+            NoteDetailTimeInfo(note.createTime, note.editTime)
+        },
         modifier = Modifier
             .fillMaxWidth()
             .fillMaxHeight()
@@ -41,6 +47,38 @@ fun NoteDetail(
             NoteDetailContent(note.content, saveContent)
         }
     }
+}
+
+@Composable
+internal fun SaveAlertDialog(
+    onDismissRequest: () -> Unit = {},
+    onConfirmed: () -> Unit = {}
+) {
+    AlertDialog(
+        onDismissRequest = onDismissRequest,
+        confirmButton = {
+            TextButton(onClick = onConfirmed) {
+                Text(text = "确认")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismissRequest) {
+                Text(text = "取消")
+            }
+        },
+        title = {
+            Text(
+                text = "退出前是否保存事项？",
+                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.h6
+            )
+        },
+        text = {
+            Text(
+                text = "选择“确认”将保存当前记录的事项；选择“取消”将直接退出，不保存任何内容！"
+            )
+        }
+    )
 }
 
 @Composable
@@ -75,12 +113,7 @@ internal fun NoteDetailContent(content: String = "", saveContent: (String) -> Un
     TextField(
         modifier = Modifier
             .fillMaxWidth()
-            .wrapContentHeight(align = Alignment.Top)
-            .onFocusChanged {
-                if (!it.isFocused) {
-                    saveContent(newContent)
-                }
-            },
+            .wrapContentHeight(align = Alignment.Top),
         textStyle = TextStyle.Default.copy(
             color = Color.Black,
             fontSize = 16.sp,
@@ -95,6 +128,7 @@ internal fun NoteDetailContent(content: String = "", saveContent: (String) -> Un
         value = newContent,
         onValueChange = {
             newContent = it
+            saveContent(newContent)
         })
 }
 
@@ -107,12 +141,7 @@ internal fun NoteDetailTitle(title: String = "", saveContent: (String) -> Unit =
         modifier = Modifier
             .fillMaxWidth()
             .background(Color.White)
-            .wrapContentHeight(align = Alignment.Top)
-            .onFocusChanged {
-                if (!it.isFocused) {
-                    saveContent(newTitle)
-                }
-            },
+            .wrapContentHeight(align = Alignment.Top),
         textStyle = TextStyle.Default.copy(
             color = Color.Black,
             fontSize = 20.sp,
@@ -127,13 +156,14 @@ internal fun NoteDetailTitle(title: String = "", saveContent: (String) -> Unit =
         value = newTitle,
         onValueChange = {
             newTitle = it
+            saveContent(newTitle)
         })
 }
 
 @Composable
-internal fun CustomTopBar(turnBack: () -> Unit = {}) {
+internal fun CustomTopBar(title: String, turnBack: () -> Unit = {}) {
     TopAppBar(
-        title = { Text(text = "详情") },
+        title = { Text(text = title) },
         navigationIcon = {
             IconButton(onClick = {
                 turnBack()
@@ -149,7 +179,7 @@ internal fun CustomTopBar(turnBack: () -> Unit = {}) {
 @Composable
 fun NoteDetailPreview() {
     Scaffold(
-        topBar = { CustomTopBar() },
+        topBar = { CustomTopBar("详情") },
         bottomBar = { NoteDetailTimeInfo("2023.03.19 15:15:37", "2023.03.19 15:15:37") },
         modifier = Modifier
             .fillMaxWidth()
